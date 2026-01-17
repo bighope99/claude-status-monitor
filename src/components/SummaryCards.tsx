@@ -7,6 +7,7 @@ interface SummaryCardsProps {
 export const SummaryCards: React.FC<SummaryCardsProps> = ({ sessions }) => {
   const runningCount = sessions.filter(s => s.status === 'running').length;
   const waitingCount = sessions.filter(s => s.status === 'waiting').length;
+  const permissionWaitingCount = sessions.filter(s => s.status === 'permission_waiting').length;
 
   const totalCost = sessions.reduce((sum, session) => sum + session.cost, 0);
   const totalTokens = sessions.reduce((sum, session) => {
@@ -29,6 +30,13 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ sessions }) => {
       borderColor: 'border-yellow-500/50'
     },
     {
+      title: 'Permission Waiting',
+      value: permissionWaitingCount,
+      bgColor: 'bg-orange-500/20',
+      textColor: 'text-orange-400',
+      borderColor: 'border-orange-500/50'
+    },
+    {
       title: 'Total Cost',
       value: `$${totalCost.toFixed(4)}`,
       bgColor: 'bg-blue-500/20',
@@ -45,7 +53,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ sessions }) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
       {cards.map((card, index) => (
         <div
           key={index}

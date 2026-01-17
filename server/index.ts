@@ -3,10 +3,11 @@ import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import cors from 'cors';
 import { getAllSessions } from './parser';
-import { startWatching, sendInitialState } from './watcher';
+import { startWatching, sendInitialState, broadcastUpdate } from './watcher';
+import { setHookState, getAllHookStates } from './hookState.js';
 
 const app = express();
-const PORT = 3001;
+const PORT = parseInt(process.env.PORT || '2800', 10);
 
 // CORS設定
 app.use(cors({
@@ -32,6 +33,39 @@ const server = createServer(app);
 
 // WebSocketサーバーを作成
 const wss = new WebSocketServer({ server });
+
+// REST API: Claude Codeからのフックイベントを受信
+app.post('/api/hook-event', (req, res) => {
+  try {
+    const { hook_event_name, session_id, cwd } = req.body;
+
+    // イベントをログ出力
+    console.log('Hook event received:', {
+      event: hook_event_name,
+      sessionId: session_id,
+      cwd: cwd,
+    });
+
+    // Hook状態を保存
+    if (cwd && hook_event_name) {
+      setHookState(cwd, hook_event_name);
+    }
+
+    // WebSocketクライアントに更新を通知
+    broadcastUpdate(wss);
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error processing hook event:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Debug endpoint: Hook状態を確認
+app.get('/api/debug/hook-states', (req, res) => {
+  const states = getAllHookStates();
+  res.json({ states: Object.fromEntries(states) });
+});
 
 wss.on('connection', (ws) => {
   console.log('Client connected');

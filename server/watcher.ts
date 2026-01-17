@@ -80,7 +80,7 @@ export function startWatching(wss: WebSocketServer): FSWatcher {
 /**
  * WebSocketクライアントに更新をブロードキャスト
  */
-function broadcastUpdate(wss: WebSocketServer) {
+export function broadcastUpdate(wss: WebSocketServer) {
   try {
     const sessions = getAllSessions();
 

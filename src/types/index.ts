@@ -31,7 +31,7 @@ export interface Todo {
 }
 
 // セッション状態
-export type SessionStatus = 'running' | 'waiting' | 'completed' | 'idle';
+export type SessionStatus = 'running' | 'waiting' | 'completed' | 'idle' | 'permission_waiting';
 
 export interface Session {
   projectPath: string;

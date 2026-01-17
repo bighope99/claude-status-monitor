@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { ProjectInfo, Todo, Session, SessionStatus } from '../src/types';
+import { getHookState } from './hookState.js';
 
 /**
  * ~/.claude.jsonをパースしてプロジェクト情報を取得
@@ -111,8 +112,25 @@ export function getLastUpdatedFromJsonl(projectPath: string, sessionId: string):
  */
 export function determineSessionStatus(
   lastUpdated: number,
-  todos: Todo[]
+  todos: Todo[],
+  projectPath?: string
 ): SessionStatus {
+  // Hook状態をチェック（PermissionRequestの場合は優先的にpermission_waitingを返す）
+  if (projectPath) {
+    const hookState = getHookState(projectPath);
+    // デバッグログ追加
+    console.log('determineSessionStatus:', {
+      projectPath,
+      hookState,
+    });
+    if (hookState?.eventType === 'SessionStart') {
+      return 'running';
+    }
+    if (hookState?.eventType === 'PermissionRequest') {
+      return 'permission_waiting';
+    }
+  }
+
   const now = Date.now();
   const timeSinceUpdate = now - lastUpdated;
   const thirtySeconds = 30 * 1000;
@@ -152,10 +170,11 @@ export function buildSession(
   const projectName = path.basename(projectPath);
   const todos = parseTodos(projectPath);
   const lastUpdated = getLastUpdatedFromJsonl(projectPath, projectInfo.lastSessionId);
-  const status = determineSessionStatus(lastUpdated, todos);
+  const normalizedPath = path.normalize(projectPath);
+  const status = determineSessionStatus(lastUpdated, todos, normalizedPath);
 
   return {
-    projectPath: path.normalize(projectPath),
+    projectPath: normalizedPath,
     projectName,
     sessionId: projectInfo.lastSessionId,
     status,
@@ -184,5 +203,9 @@ export function getAllSessions(): Session[] {
     }
   }
 
-  return sessions;
+  // Filter sessions to only those updated within the last 5 hours
+  const fiveHoursInMs = 5 * 60 * 60 * 1000; // 18,000,000 ms
+  const now = Date.now();
+
+  return sessions.filter(session => (now - session.lastUpdated) < fiveHoursInMs);
 }

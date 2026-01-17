@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { Session, WebSocketEvent } from '../types';
 
-const WS_URL = 'ws://localhost:3001';
+const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:2800';
 const RECONNECT_DELAY = 3000;
 
 export const useWebSocket = () => {

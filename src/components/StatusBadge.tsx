@@ -31,6 +31,12 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
           bgColor: 'bg-gray-500',
           textColor: 'text-white'
         };
+      case 'permission_waiting':
+        return {
+          label: 'Permission Waiting',
+          bgColor: 'bg-orange-500',
+          textColor: 'text-white'
+        };
     }
   };
 
