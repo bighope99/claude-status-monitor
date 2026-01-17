@@ -115,14 +115,9 @@ export function determineSessionStatus(
   todos: Todo[],
   projectPath?: string
 ): SessionStatus {
-  // Hook状態をチェック（PermissionRequestの場合は優先的にpermission_waitingを返す）
+  // Hook状態をチェック
   if (projectPath) {
     const hookState = getHookState(projectPath);
-    // デバッグログ追加
-    console.log('determineSessionStatus:', {
-      projectPath,
-      hookState,
-    });
     if (hookState?.eventType === 'SessionStart') {
       return 'running';
     }
